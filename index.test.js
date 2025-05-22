@@ -77,4 +77,44 @@ describe("Restaurant API", () => {
     const check = await request(app).get("/restaurants/1");
     expect(check.statusCode).toBe(404);
   });
+  
+  test("POST /restaurants returns errors if name is empty", async () => {
+    const res = await request(app)
+      .post("/restaurants")
+      .send({ name: "", location: "Texas", cuisine: "American" });
+  
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "name" }),
+      ])
+    );
+  });
+  
+  test("POST /restaurants returns errors if location is empty", async () => {
+    const res = await request(app)
+      .post("/restaurants")
+      .send({ name: "Burger Bonanza", location: " ", cuisine: "American" });
+  
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "location" }),
+      ])
+    );
+  });
+  
+  test("POST /restaurants returns errors if cuisine is empty", async () => {
+    const res = await request(app)
+      .post("/restaurants")
+      .send({ name: "Burger Bonanza", location: "Texas", cuisine: "" });
+  
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "cuisine" }),
+      ])
+    );
+  });
+  
 });

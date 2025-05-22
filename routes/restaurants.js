@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Restaurant = require("../models/index");
+const { check, validationResult } = require("express-validator");
 
+// GET all restaurants
 router.get("/", async (req, res) => {
   try {
     const restaurants = await Restaurant.findAll();
@@ -11,7 +13,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET - Read
+// GET one restaurant by id
 router.get("/:id", async (req, res) => {
   try {
     const restaurant = await Restaurant.findByPk(req.params.id);
@@ -25,17 +27,31 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST - Create
-router.post("/", async (req, res) => {
-  try {
-    const newRestaurant = await Restaurant.create(req.body);
-    res.status(201).json(newRestaurant);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to create restaurant" });
+// POST create new restaurant with validation
+router.post(
+  '/',
+  [
+    check('name').trim().notEmpty().withMessage('Name field cannot be empty'),
+    check('location').trim().notEmpty().withMessage('Location field cannot be empty'),
+    check('cuisine').trim().notEmpty().withMessage('Cuisine field cannot be empty'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ error: errors.array() });
+    }
+    
+    try {
+      const newRestaurant = await Restaurant.create(req.body);
+      return res.status(201).json(newRestaurant);
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to create restaurant' });
+    }
   }
-});
+);
 
-// PUT - Update 
+
+// PUT update existing restaurant by id
 router.put("/:id", async (req, res) => {
   try {
     const restaurant = await Restaurant.findByPk(req.params.id);
@@ -50,7 +66,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// DELETE 
+// DELETE restaurant by id
 router.delete("/:id", async (req, res) => {
   try {
     const restaurant = await Restaurant.findByPk(req.params.id);
